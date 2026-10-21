@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Little Tales Storybook</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fffaf3;
+    color: #39434d;
+    transition: background .3s, color .3s;
+}
+
+header {
+    background: #d9ecf7;
+    color: #35566b;
+    padding: 28px 15px;
+    text-align: center;
+}
+
+header h1 { margin-bottom: 8px; }
+
+nav {
+    padding: 15px;
+    text-align: center;
+    background: white;
+}
+
+nav a {
+    color: #42677d;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 12px;
+}
+
+button {
+    padding: 11px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #78a9c2;
+    color: white;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+button:hover { background: #5788a3; }
+
+.container {
+    max-width: 1150px;
+    margin: 25px auto;
+    padding: 0 15px;
+    min-height: 350px;
+}
+
+.description {
+    line-height: 1.6;
+    color: #777;
+}
+
+#search {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccdce5;
+    border-radius: 9px;
+    font-size: 16px;
+    margin: 15px 0 22px;
+}
+
+.story-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #eee4d8;
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px #00000010;
+    transition: transform .2s, background .3s;
+}
+
+.card:hover { transform: translateY(-4px); }
+
+.card img {
+    display: block;
+    width: 100%;
+    height: 165px;
+    object-fit: cover;
+    background: #d9ecf7;
+}
+
+.info { padding: 15px; }
+
+.genre {
+    display: inline-block;
+    background: #e5f2f8;
+    color: #42677d;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.info h3 { color: #35566b; }
+
+.info p, #storyContent {
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+#reader {
+    display: none;
+    background: white;
+    padding: 22px;
+    border-radius: 13px;
+    max-width: 800px;
+    margin: auto;
+}
+
+#reader img {
+    display: block;
+    width: 100%;
+    max-height: 380px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 18px 0;
+}
+
+#reader h2 { color: #35566b; }
+
+#storyContent { white-space: pre-line; }
+
+.back-button { background: #d99079; }
+
+footer {
+    background: #d9ecf7;
+    color: #536b7a;
+    text-align: center;
+    padding: 22px;
+    line-height: 1.8;
+    margin-top: 35px;
+}
+
+/* DARK MODE */
+body.dark {
+    background: #121820;
+    color: #e4eaf0;
+}
+
+body.dark header,
+body.dark footer {
+    background: #1e2b38;
+    color: #e4eaf0;
+}
+
+body.dark nav,
+body.dark .card,
+body.dark #reader {
+    background: #1e2935;
+    color: #e4eaf0;
+    border-color: #344252;
+}
+
+body.dark nav a,
+body.dark .info h3,
+body.dark #reader h2 {
+    color: #d6eafa;
+}
+
+body.dark .description,
+body.dark .info p {
+    color: #c0ceda;
+}
+
+body.dark .genre {
+    background: #30475a;
+    color: #d6eafa;
+}
+
+body.dark #search {
+    background: #263442;
+    color: white;
+    border-color: #45596b;
+}
+
+body.dark #search::placeholder { color: #c0ceda; }
+
+@media(max-width: 500px) {
+    .story-grid { grid-template-columns: 1fr; }
+    #reader { padding: 15px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 Little Tales</h1>
+    <p>A little place for big imaginations.</p>
+    <button id="themeBtn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+</header>
+
+<nav>
+    <a href="#" onclick="showHome(); return false;">Home</a>
+    <a href="#stories" onclick="goToStories(); return false;">Stories</a>
+</nav>
+
+<main class="container">
+
+<section id="home">
+    <h2>Discover a Story ✨</h2>
+    <p class="description">
+        Explore magical places, meet new friends, and enjoy
+        30 original stories for curious readers.
+    </p>
+
+    <input
+        id="search"
+        type="text"
+        placeholder="🔍 Search stories or genres..."
+        oninput="displayStories()"
+    >
+
+    <p id="resultCount" class="description"></p>
+    <div id="storyList" class="story-grid"></div>
+</section>
+
+<section id="reader">
+    <button class="back-button" onclick="showHome()">← Back to Stories</button>
+    <div id="storyDetails"></div>
+</section>
+
+</main>
+
+<footer>
+    <p>Leo Bacolcol Jr</p>
+    <p>Little Tales Storybook © 2026</p>
+    <p>ITE PROJECT</p>
+</footer>
+
+<script>
+const stories = [
+{
+title:"The Moonlight Garden", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=800",
+content:`Mia discovered a tiny gate behind her grandmother's house. Every night, it opened into a garden filled with glowing flowers. One evening, she found a lost moon fairy beneath a leaf. Mia helped the fairy return home, and the garden shone brighter than ever.`
+},
+{
+title:"The Boy Who Collected Stars", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800",
+content:`Leo loved looking at the night sky. One evening, a tiny star landed in his garden. He wanted to keep it in a jar, but the star looked sad. Leo opened the window, and the star flew home. From then on, Leo enjoyed its light from the ground.`
+},
+{
+title:"The Secret Treehouse", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=800",
+content:`Three friends discovered a ladder behind an old tree. At the top was a treehouse filled with maps and puzzles. They worked together to solve the clues and found letters from children who had played there many years ago. They left a letter of their own for the next visitors.`
+},
+{
+title:"The Little Cloud", genre:"Children",
+image:"https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800",
+content:`Puffy was a little cloud who could not make rain. He felt useless until he saw a garden full of thirsty flowers. Puffy gathered water and gently watered the plants. The flowers stood tall again, and Puffy learned that everyone has something special to give.`
+},
+{
+title:"The Paper Boat", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800",
+content:`Ella folded a paper boat and placed it in a stream. It traveled past gardens and little bridges. Near the riverbank, she met a child searching for a lost toy. Ella helped find it, and they made another paper boat together.`
+},
+{
+title:"The Library Cat", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800",
+content:`A gray cat visited the library every night. One evening, a book opened by itself and revealed a magical doorway. The cat stepped inside and met animals who could talk. Before morning, it returned with a new story for the librarian.`
+},
+{
+title:"A Letter to Tomorrow", genre:"Drama",
+image:"https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800",
+content:`Sam wrote a letter to his future self about his hopes and dreams. He placed it in a wooden box. Years later, he found the letter and smiled. Life had changed, but he still loved helping people and learning new things.`
+},
+{
+title:"The Baker's Wish", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800",
+content:`A young baker wished that his bread could make people happy. One morning, he shared warm bread with a lonely neighbor. Soon, more neighbors came to share food and stories. The baker discovered that kindness was the secret ingredient.`
+},
+{
+title:"The Island of Blue Birds", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1444464666168-49d633b86797?w=800",
+content:`Nico found an island on an old map. He sailed there with his aunt and discovered blue birds that could copy human words. The birds led them to a hidden spring. Nico drew a map of the island so others could visit and protect its beauty.`
+},
+{
+title:"The Missing Paintbrush", genre:"Mystery",
+image:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800",
+content:`Ava could not find her favorite paintbrush before the school art show. She searched the classroom and asked her classmates for help. At last, they found it inside an art cupboard. Together, they finished the painting just in time.`
+},
+{
+title:"The Little Lighthouse", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1498623116890-37e912163d5d?w=800",
+content:`During a storm, the lighthouse light stopped working. Nella carried a spare lantern upstairs. Its glow helped a fishing boat find the harbor. The town repaired the lighthouse and thanked Nella for helping the sailors.`
+},
+{
+title:"The Clockmaker's Secret", genre:"Mystery",
+image:"https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800",
+content:`Ben noticed that one clock in an old shop always stopped at seven. Behind it, he found a note and an old family photograph. He returned the photograph to the clockmaker's granddaughter, who had been looking for it for years.`
+},
+{
+title:"The Friendly Dragon", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800",
+content:`Ember was a little dragon who lived near a village. People feared the smoke from his nose. During winter, Ember warmed the village greenhouse and saved the plants. The villagers discovered that he was kind and invited him to their festival.`
+},
+{
+title:"The Rainy Day Club", genre:"Friendship",
+image:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=800",
+content:`Rain canceled four friends' picnic. Instead of going home, they built a blanket fort in a garage. They shared snacks, played games, and told funny stories. They decided that rainy days could be just as fun as sunny days.`
+},
+{
+title:"The Old Music Box", genre:"Drama",
+image:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800",
+content:`Lily found an old music box in the attic. Its melody reminded her grandfather of his childhood. He shared stories about his family while the music played. Lily recorded his memories so the family could listen to them in the future.`
+},
+{
+title:"The Garden of Wishes", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800",
+content:`A gardener planted a mysterious seed. Flowers grew with wishes written on their petals. She delivered the wishes to villagers. Many wishes came true because neighbors worked together to help one another.`
+},
+{
+title:"The Brave Little Turtle", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=800",
+content:`Timo wanted to see the other side of the meadow. He walked slowly and helped a beetle cross the path. He also shared shade with a tired mouse. Before sunset, Timo reached the meadow and felt proud of his journey.`
+},
+{
+title:"The Invisible Friend", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=800",
+content:`Maya imagined an invisible friend and drew pictures of their adventures. Her teacher displayed the drawings in class. Other children joined her imaginative games, and Maya made new friends. She learned that creativity could bring people together.`
+},
+{
+title:"The Last Train Home", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800",
+content:`Eli nearly missed the last train home. At the station, he helped an elderly passenger find the correct platform. The passenger thanked him, and Eli caught his train. He arrived home late but felt happy about helping someone.`
+},
+{
+title:"The Little Inventor", genre:"Science",
+image:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800",
+content:`Rina built a machine to sort recyclable materials. Her first design failed, but she kept testing it. With help from her classmates, she improved the machine. Their school began recycling more waste, and Rina learned that mistakes can lead to better ideas.`
+},
+{
+title:"The Fox and the Bell", genre:"Fable",
+image:"https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800",
+content:`A fox rang a golden bell to attract attention. When a storm came, the other animals ignored his warnings because they were tired of the noise. The fox apologized and used the bell only when something important needed to be said.`
+},
+{
+title:"The Starry Camp", genre:"Friendship",
+image:"https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800",
+content:`A group of classmates went camping for the first time. They struggled to pitch their tent but worked together until it stood firmly. At night, they shared stories beneath the stars. They returned home with happy memories and a stronger friendship.`
+},
+{
+title:"The Mermaid's Necklace", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800",
+content:`A young mermaid lost her shell necklace near the shore. Finn found it and carefully returned it to the water. The mermaid showed him a beautiful coral garden from a safe distance. Finn promised to help keep the beach and sea clean.`
+},
+{
+title:"The Forgotten Playground", genre:"Drama",
+image:"https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=800",
+content:`An old playground had been empty for years. A student organized families to clean and repair it. They painted the swings and planted flowers. Soon, children filled the playground with laughter, and neighbors gathered there again.`
+},
+{
+title:"The Midnight Painter", genre:"Fantasy",
+image:"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=800",
+content:`A mysterious painter added colors to the sky every midnight. A curious child left a thank-you note by the window. The painter smiled and created a beautiful rainbow the following morning. The child watched the sky with wonder.`
+},
+{
+title:"The Kindness Jar", genre:"Life",
+image:"https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800",
+content:`Noah started a jar for notes about kind acts. His family wrote about sharing meals, helping neighbors, and listening carefully. When the jar filled, they read every note aloud. Noah learned that kindness grows through small choices every day.`
+},
+{
+title:"The Mountain Path", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800",
+content:`Two sisters followed a marked trail to a mountain lookout. They packed water and rested when needed. At the top, they watched clouds drift across the mountains. They returned home safely, proud that they had helped each other.`
+},
+{
+title:"The Robot's First Friend", genre:"Science",
+image:"https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800",
+content:`Pip was a small robot who did not understand jokes. Arlo taught Pip games and riddles. In return, Pip helped Arlo organize his science project. They learned that friendship grows when both sides are willing to learn.`
+},
+{
+title:"The Secret of the Old Map", genre:"Mystery",
+image:"https://images.unsplash.com/photo-1466442929976-97f336a657be?w=800",
+content:`Zoe discovered an old map inside a secondhand book. Its clues led her around the town library, where she found a collection of local history. She created a new map so other children could discover their town too.`
+},
+{
+title:"The Dawn Express", genre:"Adventure",
+image:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800",
+content:`A mysterious train arrived just before sunrise. Its passengers were musicians traveling to a festival. When the conductor lost his timetable, a student helped him read the station signs. The train departed on time, carrying music to a distant town.`
+}
+];
+
+const storyList = document.getElementById("storyList");
+const home = document.getElementById("home");
+const reader = document.getElementById("reader");
+const storyDetails = document.getElementById("storyDetails");
+const search = document.getElementById("search");
+const resultCount = document.getElementById("resultCount");
+
+const placeholder =
+"https://placehold.co/800x400/e5edf0/35566b?text=Little+Tales";
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+
+    const dark = document.body.classList.contains("dark");
+    document.getElementById("themeBtn").textContent =
+        dark ? "☀️ Light Mode" : "🌙 Dark Mode";
+}
+
+function makeImage(img, url, title) {
+    img.src = url;
+    img.alt = title;
+    img.loading = "lazy";
+
+    img.onerror = function() {
+        if (this.dataset.fallback) return;
+        this.dataset.fallback = "true";
+        this.src = placeholder;
+    };
+}
+
+function displayStories() {
+    const query = search.value.toLowerCase().trim();
+
+    const filtered = stories
+        .map((story, index) => ({ ...story, index }))
+        .filter(story =>
+            story.title.toLowerCase().includes(query) ||
+            story.genre.toLowerCase().includes(query) ||
+            story.content.toLowerCase().includes(query)
+        );
+
+    storyList.innerHTML = "";
+    resultCount.textContent =
+        filtered.length + (filtered.length === 1 ? " story found" : " stories found");
+
+    if (filtered.length === 0) {
+        storyList.textContent = "No stories found. Try another search.";
+        return;
+    }
+
+    filtered.forEach(story => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const img = document.createElement("img");
+        makeImage(img, story.image, story.title);
+
+        const info = document.createElement("div");
+        info.className = "info";
+
+        const genre = document.createElement("span");
+        genre.className = "genre";
+        genre.textContent = story.genre;
+
+        const title = document.createElement("h3");
+        title.textContent = story.title;
+
+        const preview = document.createElement("p");
+        preview.textContent = story.content.slice(0, 95) + "...";
+
+        const button = document.createElement("button");
+        button.textContent = "Read Story";
+        button.onclick = () => readStory(story.index);
+
+        info.append(genre, title, preview, button);
+        card.append(img, info);
+        storyList.appendChild(card);
+    });
+}
+
+function readStory(index) {
+    const story = stories[index];
+    if (!story) return;
+
+    home.style.display = "none";
+    reader.style.display = "block";
+    storyDetails.innerHTML = "";
+
+    const title = document.createElement("h2");
+    title.textContent = story.title;
+
+    const genre = document.createElement("span");
+    genre.className = "genre";
+    genre.textContent = story.genre;
+
+    const img = document.createElement("img");
+    makeImage(img, story.image, story.title);
+
+    const content = document.createElement("p");
+    content.id = "storyContent";
+    content.textContent = story.content;
+
+    storyDetails.append(title, genre, img, content);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showHome() {
+    reader.style.display = "none";
+    home.style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function goToStories() {
+    showHome();
+    document.getElementById("search").scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+displayStories();
+</script>
+
+</body>
+</html>
